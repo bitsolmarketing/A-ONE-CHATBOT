@@ -39,7 +39,15 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const raw = await req.text();
 
-  console.log(">>> [ACTIVE WEBHOOK HIT: /api/whatsapp/webhook] Received raw body:", raw.slice(0, 300));
+  let body: WhatsAppWebhookBody | null = null;
+  try {
+    body = JSON.parse(raw) as WhatsAppWebhookBody;
+  } catch {}
+
+  const entry = (body as any)?.entry?.[0]?.changes?.[0]?.value;
+  const message = entry?.messages?.[0];
+
+  console.log(">>> [LIVE WEBHOOK ACTIVE] Message received at:", new Date().toISOString(), message);
 
   if (!verifySignature(raw, req.headers.get("x-hub-signature-256"))) {
     console.warn("[whatsapp] rejected webhook with invalid signature.");
@@ -51,10 +59,7 @@ export async function POST(req: NextRequest) {
     return new Response("Invalid signature", { status: 401 });
   }
 
-  let body: WhatsAppWebhookBody;
-  try {
-    body = JSON.parse(raw) as WhatsAppWebhookBody;
-  } catch {
+  if (!body) {
     return new Response("OK", { status: 200 });
   }
 

@@ -141,11 +141,11 @@ export default function ConversationsInboxPage() {
   const [isAtBottom, setIsAtBottom] = useState(true);
   const prevMessagesLength = useRef(0);
 
-  // Track scroll position: user is near bottom if within 100px
+  // Track scroll position: user is near bottom if within 80px
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-    const atBottom = scrollHeight - scrollTop - clientHeight < 100;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 80;
     setIsAtBottom(atBottom);
   };
 

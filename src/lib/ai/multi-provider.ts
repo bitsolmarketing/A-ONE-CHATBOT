@@ -200,7 +200,7 @@ export async function generateMultiProviderReply(
 
   // 3. Graceful Localized Fallback
   return {
-    text: "Ji janab! A-One Foods ka menu dekhne aur order karne ke liye 'View Menu' button par tap karein.",
+    text: "A-One Foods mein aapka khushamdeed! Menu dekhne aur order karne ke liye 'View Menu (NEW)' ya 'All Deals (NEW)' button par tap karein.",
     providerUsed: "local-rule",
     modelUsed: "fallback",
   };

@@ -278,9 +278,17 @@ async function createDatabaseOrder({
     }
 
     const orderNumber = `AO-${Date.now().toString().slice(-6)}`;
-    const subtotal = session.subtotal || session.unitPrice * session.quantity || 500;
-    const deliveryFee = 150;
-    const total = session.grandTotal || subtotal + deliveryFee;
+    const unitPrice = Number(session.unitPrice) || 0;
+    const qty = Number(session.quantity) || 1;
+    const subtotal = unitPrice * qty;
+    const deliveryCharges = 150;
+    const finalTotal = subtotal + deliveryCharges;
+
+    session.unitPrice = unitPrice;
+    session.quantity = qty;
+    session.subtotal = subtotal;
+    session.deliveryFee = deliveryCharges;
+    session.grandTotal = finalTotal;
 
     // 3. Order
     const order = await prisma.order.create({
@@ -296,9 +304,9 @@ async function createDatabaseOrder({
         paymentScreenshot,
         paymentNotes,
         subtotal,
-        deliveryFee,
+        deliveryFee: deliveryCharges,
         discount: 0,
-        total,
+        total: finalTotal,
         customerName: customer.name || `Customer ${cleanPhone.slice(-4)}`,
         customerPhone: formattedPhone,
         deliveryAddress: session.address || customer.address || "Not specified",
@@ -307,9 +315,9 @@ async function createDatabaseOrder({
           create: [
             {
               itemName: session.selectedItem || "A-ONE Dish",
-              unitPrice: session.unitPrice || 500,
-              quantity: session.quantity || 1,
-              subtotal,
+              unitPrice: unitPrice,
+              quantity: qty,
+              subtotal: subtotal,
             },
           ],
         },
@@ -372,19 +380,19 @@ async function sendLanguageSelection(to) {
 async function sendMainActionButtons(to, language = "ROMAN_URDU") {
   let bodyText =
     "Aapki khidmat ke liye hazir hain. Khana dekhne ya deals ke liye neeche button par tap karein:";
-  let btnMenu = "📜 View Menu";
-  let btnDeals = "🔥 All Deals";
+  let btnDeals = "🔥 All Deals (NEW)";
+  let btnMenu = "📜 View Menu (NEW)";
   let btnStaff = "👨‍🍳 Staff Support";
 
   if (language === "URDU") {
     bodyText = "اے ون فوڈز میں خوش آمدید! مینو یا ڈیلز کے لیے نیچے دیے گئے بٹن پر ٹیپ کریں:";
-    btnMenu = "📜 مینو دیکھیں";
-    btnDeals = "🔥 تمام ڈیلز";
+    btnDeals = "🔥 تمام ڈیلز (NEW)";
+    btnMenu = "📜 مینو دیکھیں (NEW)";
     btnStaff = "👨‍🍳 عملے سے رابطہ";
   } else if (language === "ENGLISH") {
     bodyText = "Welcome to A-One Foods! Please tap a button below to view food menu or deals:";
-    btnMenu = "📜 View Menu";
-    btnDeals = "🔥 All Deals";
+    btnDeals = "🔥 All Deals (NEW)";
+    btnMenu = "📜 View Menu (NEW)";
     btnStaff = "👨‍🍳 Staff Support";
   }
 
@@ -395,8 +403,8 @@ async function sendMainActionButtons(to, language = "ROMAN_URDU") {
       body: { text: bodyText },
       action: {
         buttons: [
-          { type: "reply", reply: { id: "btn_open_food_menu", title: btnMenu.slice(0, 20) } },
           { type: "reply", reply: { id: "btn_open_deals_hub", title: btnDeals.slice(0, 20) } },
+          { type: "reply", reply: { id: "btn_open_food_menu", title: btnMenu.slice(0, 20) } },
           { type: "reply", reply: { id: "btn_open_staff", title: btnStaff.slice(0, 20) } },
         ],
       },
@@ -589,19 +597,25 @@ async function sendHybridQuantitySelection(to, item, session, language = "ROMAN_
 //  FLOW 7: PAYMENT METHOD SELECTION (COD vs Online Payment)
 // =============================================================================
 async function sendPaymentMethodSelection(to, session) {
-  const subtotal = session.subtotal || session.unitPrice * session.quantity || 500;
-  const deliveryFee = 150;
-  const grandTotal = subtotal + deliveryFee;
+  const unitPrice = Number(session.unitPrice) || 0;
+  const qty = Number(session.quantity) || 1;
+  const subtotal = unitPrice * qty;
+  const deliveryCharges = 150;
+  const finalTotal = subtotal + deliveryCharges;
 
+  session.unitPrice = unitPrice;
+  session.quantity = qty;
   session.subtotal = subtotal;
-  session.deliveryFee = deliveryFee;
-  session.grandTotal = grandTotal;
+  session.deliveryFee = deliveryCharges;
+  session.grandTotal = finalTotal;
   session.step = "AWAITING_PAYMENT_METHOD";
 
   const bodyText =
-    `Order Subtotal: Rs. ${subtotal}\n` +
-    `Delivery: Rs. 150\n` +
-    `Total Bill: *Rs. ${grandTotal}*\n\n` +
+    `Item: *${session.selectedItem || "Selected Item"}* (x${qty})\n` +
+    `Price: Rs. ${unitPrice} each\n` +
+    `Subtotal: Rs. ${subtotal}\n` +
+    `Delivery: Rs. ${deliveryCharges}\n` +
+    `Total Bill: *Rs. ${finalTotal}*\n\n` +
     `Aap payment kis tarah karna chahte hain?`;
 
   await sendWhatsApp(to, {
@@ -716,7 +730,7 @@ export async function POST(request) {
     const entry = body?.entry?.[0]?.changes?.[0]?.value;
     const message = entry?.messages?.[0];
 
-    console.log(">>> [ACTIVE WEBHOOK HIT: /api/webhook] Incoming message:", JSON.stringify(message, null, 2));
+    console.log(">>> [LIVE WEBHOOK ACTIVE] Message received at:", new Date().toISOString(), message);
 
     if (!message) return NextResponse.json({ status: "ignored" });
     const from = message.from;
@@ -797,14 +811,23 @@ export async function POST(request) {
       // Step: Awaiting Quantity via User Typing
       if (session.step === "AWAITING_QUANTITY") {
         const parsedQty = parseInt(text.replace(/\D/g, ""), 10) || 1;
-        session.quantity = parsedQty;
-        session.subtotal = (session.unitPrice || 500) * session.quantity;
+        const unitPrice = Number(session.unitPrice) || 0;
+        const qty = parsedQty;
+        const subtotal = unitPrice * qty;
+        const deliveryCharges = 150;
+        const finalTotal = subtotal + deliveryCharges;
+
+        session.unitPrice = unitPrice;
+        session.quantity = qty;
+        session.subtotal = subtotal;
+        session.deliveryFee = deliveryCharges;
+        session.grandTotal = finalTotal;
         session.step = "AWAITING_ADDRESS";
 
         await sendWhatsApp(from, {
           type: "text",
           text: {
-            body: `Quantity: *${parsedQty}* note ho gayi hai.\n\nAb baraye meherbani apna **Delivery Address** bhej dein:`,
+            body: `Quantity: *${qty}* note ho gayi hai (Subtotal: Rs. ${subtotal}).\n\nAb baraye meherbani apna **Delivery Address** bhej dein:`,
           },
         });
         return NextResponse.json({ status: "success" });
@@ -813,13 +836,17 @@ export async function POST(request) {
       // Step: Awaiting Address -> Go to Payment Selection
       if (session.step === "AWAITING_ADDRESS") {
         session.address = text;
-        const subtotal = (session.unitPrice || 500) * (session.quantity || 1);
-        const deliveryFee = 150;
-        const grandTotal = subtotal + deliveryFee;
+        const unitPrice = Number(session.unitPrice) || 0;
+        const qty = Number(session.quantity) || 1;
+        const subtotal = unitPrice * qty;
+        const deliveryCharges = 150;
+        const finalTotal = subtotal + deliveryCharges;
 
+        session.unitPrice = unitPrice;
+        session.quantity = qty;
         session.subtotal = subtotal;
-        session.deliveryFee = deliveryFee;
-        session.grandTotal = grandTotal;
+        session.deliveryFee = deliveryCharges;
+        session.grandTotal = finalTotal;
 
         await sendPaymentMethodSelection(from, session);
         return NextResponse.json({ status: "success" });
@@ -871,17 +898,21 @@ export async function POST(request) {
         }
       }
 
-      // Greeting Triggers -> Flow 1
+      // Greeting Triggers -> Directly Send Main Action Buttons with (NEW) Test Buttons!
       if (
         lower === "hi" ||
         lower === "hello" ||
         lower === "hey" ||
         lower === "start" ||
-        lower === "language" ||
-        lower === "zaban" ||
         lower.includes("salam") ||
         lower.includes("سلام")
       ) {
+        resetUserSession(from);
+        await sendMainActionButtons(from, session.language);
+        return NextResponse.json({ status: "success" });
+      }
+
+      if (lower === "language" || lower === "zaban") {
         resetUserSession(from);
         await sendLanguageSelection(from);
         return NextResponse.json({ status: "success" });
@@ -941,10 +972,10 @@ export async function POST(request) {
             ? "English"
             : "Roman Urdu";
 
-        const strictInstruction = `You are the customer assistant for A-One Foods. You must respond in STRICTLY ${langName} (Roman Urdu by default). Maximum 1 short sentence. NEVER invent prices. Tell the user to click 'View Menu' or 'All Deals' below to order.`;
+        const strictInstruction = `You are the customer assistant for A-One Foods. You must respond in STRICTLY ${langName} (Roman Urdu by default). Maximum 1 short sentence. NEVER invent prices. Tell the user to click 'View Menu (NEW)' or 'All Deals (NEW)' below to order.`;
 
         const aiResult = await generateMultiProviderReply(text, strictInstruction);
-        const reply = aiResult.text || "Ji janab! Khana dekhne ke liye 'View Menu' ya 'All Deals' par tap karein.";
+        const reply = aiResult.text || "A-One Foods mein aapka khushamdeed! Menu ya deals dekhne ke liye neeche button par tap karein.";
 
         await sendWhatsApp(from, { type: "text", text: { body: reply } });
         await sendMainActionButtons(from, session.language);
@@ -1022,28 +1053,46 @@ export async function POST(request) {
 
       // 3g. Quantity Buttons Tapped ([1], [2], [Custom Type])
       if (actionId === "qty_1") {
-        session.quantity = 1;
-        session.subtotal = (session.unitPrice || 500) * 1;
+        const unitPrice = Number(session.unitPrice) || 0;
+        const qty = 1;
+        const subtotal = unitPrice * qty;
+        const deliveryCharges = 150;
+        const finalTotal = subtotal + deliveryCharges;
+
+        session.unitPrice = unitPrice;
+        session.quantity = qty;
+        session.subtotal = subtotal;
+        session.deliveryFee = deliveryCharges;
+        session.grandTotal = finalTotal;
         session.step = "AWAITING_ADDRESS";
 
         await sendWhatsApp(from, {
           type: "text",
           text: {
-            body: `Quantity: *1* select ho gayi hai.\n\nAb baraye meherbani apna **Delivery Address** bhej dein:`,
+            body: `Quantity: *1* select ho gayi hai (Subtotal: Rs. ${subtotal}).\n\nAb baraye meherbani apna **Delivery Address** bhej dein:`,
           },
         });
         return NextResponse.json({ status: "success" });
       }
 
       if (actionId === "qty_2") {
-        session.quantity = 2;
-        session.subtotal = (session.unitPrice || 500) * 2;
+        const unitPrice = Number(session.unitPrice) || 0;
+        const qty = 2;
+        const subtotal = unitPrice * qty;
+        const deliveryCharges = 150;
+        const finalTotal = subtotal + deliveryCharges;
+
+        session.unitPrice = unitPrice;
+        session.quantity = qty;
+        session.subtotal = subtotal;
+        session.deliveryFee = deliveryCharges;
+        session.grandTotal = finalTotal;
         session.step = "AWAITING_ADDRESS";
 
         await sendWhatsApp(from, {
           type: "text",
           text: {
-            body: `Quantity: *2* select ho gayi hai.\n\nAb baraye meherbani apna **Delivery Address** bhej dein:`,
+            body: `Quantity: *2* select ho gayi hai (Subtotal: Rs. ${subtotal}).\n\nAb baraye meherbani apna **Delivery Address** bhej dein:`,
           },
         });
         return NextResponse.json({ status: "success" });

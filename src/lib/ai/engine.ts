@@ -87,25 +87,25 @@ export async function processCustomerMessage(params: {
       const selectedLang = cleanText.includes("urdu") ? "ur" : cleanText.includes("en") ? "en" : "roman";
       await updateConversationState(conversationId, { language: selectedLang }, customerId);
       
-      let bodyText = "Aapki khidmat ke liye hazir hain. Khana dekhne ke liye neeche button par tap karein:";
-      let btnMenu = "📜 View Menu";
-      let btnDeals = "🔥 Special Deals";
+      let bodyText = "Aapki khidmat ke liye hazir hain. Khana dekhne ya deals ke liye neeche button par tap karein:";
+      let btnDeals = "🔥 All Deals (NEW)";
+      let btnMenu = "📜 View Menu (NEW)";
       let btnStaff = "👨‍🍳 Staff Support";
 
       if (selectedLang === "ur") {
-        bodyText = "اے ون فوڈز میں خوش آمدید! کھانا دیکھنے کے لیے نیچے دیے گئے بٹن پر ٹیپ کریں:";
-        btnMenu = "📜 مینو دیکھیں";
-        btnDeals = "🔥 اسپیشل ڈیلز";
+        bodyText = "اے ون فوڈز میں خوش آمدید! کھانا یا ڈیلز دیکھنے کے لیے نیچے دیے گئے بٹن پر ٹیپ کریں:";
+        btnDeals = "🔥 تمام ڈیلز (NEW)";
+        btnMenu = "📜 مینو دیکھیں (NEW)";
         btnStaff = "👨‍🍳 عملے سے رابطہ";
       } else if (selectedLang === "en") {
-        bodyText = "Welcome to A-One Foods! Please tap a button below to view our menu and deals:";
+        bodyText = "Welcome to A-One Foods! Please tap a button below to view food menu or deals:";
       }
 
       return {
         text: bodyText,
         buttons: [
-          { id: "btn_show_menu", title: btnMenu.slice(0, 20) },
           { id: "btn_show_deals", title: btnDeals.slice(0, 20) },
+          { id: "btn_show_menu", title: btnMenu.slice(0, 20) },
           { id: "btn_staff_help", title: btnStaff.slice(0, 20) },
         ],
       };
@@ -242,9 +242,9 @@ export async function processCustomerMessage(params: {
       };
     }
 
-    // B. GREETING -> Language Selection
+    // B. GREETING -> Buttons
     if (nlu.intent === "GREETING") {
-      let welcome = "Assalam-o-Alaikum! A-One Foods mein khushamdeed. Zaban muntakhib karein / Select language:";
+      let welcome = "Assalam-o-Alaikum! A-One Foods mein khushamdeed. Khana dekhne ya deals ke liye neeche button par tap karein:";
       try {
         const { settings } = await getRestaurantSettings();
         if (settings?.whatsappConfig?.welcomeMessage) {
@@ -255,9 +255,9 @@ export async function processCustomerMessage(params: {
       return {
         text: welcome,
         buttons: [
-          { id: "lang_roman", title: "🇵🇰 Roman Urdu" },
-          { id: "lang_urdu", title: "🇵🇰 اردو" },
-          { id: "lang_en", title: "🇬🇧 English" },
+          { id: "btn_show_deals", title: "🔥 All Deals (NEW)" },
+          { id: "btn_show_menu", title: "📜 View Menu (NEW)" },
+          { id: "btn_staff_help", title: "👨‍🍳 Staff Support" },
         ],
       };
     }
@@ -804,8 +804,8 @@ export async function processCustomerMessage(params: {
         return {
           text: aiResult.text,
           buttons: [
-            { id: "btn_show_menu", title: "📜 View Menu" },
-            { id: "btn_show_deals", title: "🔥 Special Deals" },
+            { id: "btn_show_deals", title: "🔥 All Deals (NEW)" },
+            { id: "btn_show_menu", title: "📜 View Menu (NEW)" },
             { id: "btn_staff_help", title: "👨‍🍳 Staff Support" },
           ],
         };
@@ -818,11 +818,11 @@ export async function processCustomerMessage(params: {
     return {
       text:
         lang === "ur"
-          ? "اے ون فوڈز میں خوش آمدید! مینو دیکھنے اور آرڈر کرنے کے لیے نیچے دیے گئے 'View Menu' پر ٹیپ کریں۔"
-          : "Assalam-o-Alaikum! A-One Foods mein khushamdeed. Menu dekhne aur order karne ke liye 'View Menu' button par tap karein.",
+          ? "اے ون فوڈز میں خوش آمدید! مینو دیکھنے اور آرڈر کرنے کے لیے نیچے دیے گئے بٹن پر ٹیپ کریں۔"
+          : "Assalam-o-Alaikum! A-One Foods mein khushamdeed. Menu dekhne aur order karne ke liye neeche button par tap karein.",
       buttons: [
-        { id: "btn_show_menu", title: "📜 View Menu" },
-        { id: "btn_show_deals", title: "🔥 Special Deals" },
+        { id: "btn_show_deals", title: "🔥 All Deals (NEW)" },
+        { id: "btn_show_menu", title: "📜 View Menu (NEW)" },
         { id: "btn_staff_help", title: "👨‍🍳 Staff Support" },
       ],
     };
