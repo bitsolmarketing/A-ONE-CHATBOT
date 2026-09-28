@@ -137,7 +137,17 @@ export default function ConversationsInboxPage() {
   const [activeAlert, setActiveAlert] = useState<string | null>(null);
 
   const prevPendingCountRef = useRef(0);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const prevMessagesLength = useRef(0);
+
+  // Track scroll position: user is near bottom if within 100px
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 100;
+    setIsAtBottom(atBottom);
+  };
 
   const selectedConv = conversations.find((c) => c.id === selectedConvId);
 
@@ -246,9 +256,34 @@ export default function ConversationsInboxPage() {
     }
   }, [selectedConvId, loadMessages]);
 
+  // Reset scroll state on switching conversations
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    prevMessagesLength.current = 0;
+    setIsAtBottom(true);
+  }, [selectedConvId]);
+
+  // Smart auto-scroll: Only scroll to bottom if user is at bottom or on initial load
+  useEffect(() => {
+    if (!scrollContainerRef.current) return;
+
+    const hasNewMessage = messages.length > prevMessagesLength.current;
+    const isInitialLoad = prevMessagesLength.current === 0 && messages.length > 0;
+    prevMessagesLength.current = messages.length;
+
+    // Initial load: jump directly to bottom
+    if (isInitialLoad) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      return;
+    }
+
+    // New incoming message: only auto-scroll if user was already at the bottom
+    if (hasNewMessage && isAtBottom) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages, isAtBottom]);
 
   // 3. Send Staff Reply via WhatsApp Cloud API
   async function handleSendReply(e?: React.FormEvent) {
@@ -278,6 +313,14 @@ export default function ConversationsInboxPage() {
           setConversations((prev) =>
             prev.map((c) => (c.id === selectedConvId ? { ...c, status: "PENDING" } : c))
           );
+        }
+        // Staff sent a message: scroll to bottom
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+          setIsAtBottom(true);
         }
       } else if (!data.ok) {
         alert("Failed to send message: " + (data.error || "Network error"));
@@ -902,8 +945,10 @@ export default function ConversationsInboxPage() {
 
               {/* Message Thread History Container (Expanded, Full Height Scroll) */}
               <div
+                ref={scrollContainerRef}
+                onScroll={handleScroll}
                 className="flex-1 h-full min-h-0 overflow-y-auto p-4 flex flex-col space-y-3.5 scroll-slim bg-neutral-950/30"
-                style={{ display: "flex", flexDirection: "column" }}
+                style={{ display: "flex", flexDirection: "column", overflowAnchor: "none" }}
               >
                 {loadingMessages && messages.length === 0 && (
                   <p className="text-center text-xs text-neutral-500 py-12">Loading messages...</p>
@@ -958,7 +1003,6 @@ export default function ConversationsInboxPage() {
                     </div>
                   );
                 })}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Quick Reply Chips */}
