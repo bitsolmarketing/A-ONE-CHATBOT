@@ -26,7 +26,7 @@ import {
 } from "./cart";
 import { parseNlu, parseQuantity, type NluResult } from "./nlu";
 import type { ReplyButton, ListRow } from "@/lib/whatsapp/types";
-import { MENU_CATEGORIES_LIST, MENU_DATA, findItemById } from "@/lib/whatsapp/menu-catalog";
+import { DEALS_CATEGORIES_LIST, FOOD_CATEGORIES_LIST, MENU_DATA, findItemById } from "@/lib/whatsapp/menu-catalog";
 import { getRestaurantSettings } from "@/lib/settings-store";
 import { generateMultiProviderReply } from "@/lib/ai/multi-provider";
 import { getProvider } from "./index";
@@ -113,28 +113,29 @@ export async function processCustomerMessage(params: {
 
     if (cleanText === "btn_show_menu" || cleanText === "act:view_menu") {
       return {
-        text: "Categories dekhne ke liye neeche button par tap karein:",
+        text: "Food Categories dekhne ke liye neeche button par tap karein:",
         list: {
           buttonLabel: "Categories",
-          header: "A-One Foods Menu",
-          rows: MENU_CATEGORIES_LIST,
+          header: "A-One Food Menu",
+          rows: FOOD_CATEGORIES_LIST,
         },
       };
     }
 
-    if (cleanText === "btn_show_deals") {
+    if (cleanText === "btn_show_deals" || cleanText === "btn_open_deals_hub" || cleanText === "act:view_deals") {
       return {
-        text: "Apna manpasand deal select karein:",
+        text: "Apna manpasand Deal group select karein:",
         list: {
-          buttonLabel: "Special Deals",
-          header: "🔥 Special Deals",
-          rows: MENU_DATA.cat_special_deals.rows,
+          buttonLabel: "Deals Groups",
+          header: "🔥 All Deals",
+          rows: DEALS_CATEGORIES_LIST,
         },
       };
     }
 
-    if (cleanText.startsWith("cat_")) {
-      const cat = MENU_DATA[cleanText] || MENU_DATA.cat_special_deals;
+    if (cleanText.startsWith("cat_") || cleanText.startsWith("deals_cat_") || cleanText.startsWith("food_cat_")) {
+      const catKey = cleanText.replace(/^(deals_|food_)/, "");
+      const cat = MENU_DATA[cleanText] || MENU_DATA[catKey] || MENU_DATA.cat_special_deals_1;
       if (cat) {
         return {
           text: "Apna item select karein:",
@@ -149,23 +150,29 @@ export async function processCustomerMessage(params: {
 
     const clickedItem = findItemById(cleanText);
     if (clickedItem) {
+      const price = Number(clickedItem.price) || 500;
       await updateConversationState(
         conversationId,
         {
-          pendingOrderConfirmation: true,
-          lastDiscussedItem: {
+          pendingQuantityItem: {
+            menuItemId: clickedItem.id,
             name: clickedItem.title,
-            price: 0,
+            price: price,
+          },
+          lastDiscussedItem: {
+            menuItemId: clickedItem.id,
+            name: clickedItem.title,
+            price: price,
           },
         },
         customerId
       );
       return {
-        text: `Aapne select kiya: *${clickedItem.title}*\n${clickedItem.description}\n\nKya yehi finalize karna hai?`,
+        text: `Aapne select kiya: *${clickedItem.title}*\n${clickedItem.description}\nPrice: *Rs. ${price}*\n\nKitni quantity chahiye? Button tap karein ya number type karein:`,
         buttons: [
-          { id: "btn_confirm_order", title: "✅ Order Now" },
-          { id: "btn_show_menu", title: "➕ Aur Dekhein" },
-          { id: "btn_change_lang", title: "🌐 Zaban Badlein" },
+          { id: "1", title: "1️⃣ 1 Piece" },
+          { id: "2", title: "2️⃣ 2 Pieces" },
+          { id: "act:qty_other", title: "✍️ Other Quantity" },
         ],
       };
     }
@@ -265,11 +272,11 @@ export async function processCustomerMessage(params: {
     // C. VIEW MENU -> Native WhatsApp Interactive List (No text dumping)
     if (nlu.intent === "VIEW_MENU") {
       return {
-        text: "Categories dekhne ke liye neeche button par tap karein:",
+        text: "Food Categories dekhne ke liye neeche button par tap karein:",
         list: {
           buttonLabel: "Categories",
-          header: "A-One Foods Menu",
-          rows: MENU_CATEGORIES_LIST,
+          header: "A-One Food Menu",
+          rows: FOOD_CATEGORIES_LIST,
         },
       };
     }
@@ -789,6 +796,67 @@ export async function processCustomerMessage(params: {
         text: "Aap ka koi active checkout nahi tha. Agar aap ne pichla order cancel karwana hai to Order # batayein (e.g. 'AONE-1002 cancel kar do') ya staff se rabta karein.",
         buttons: [{ id: "act:talk_staff", title: "👨‍🍳 Staff Support" }],
       };
+    }
+
+    // Q. STRUCTURED ADDRESS RECOGNITION (e.g. "House 12, Street 4, ABC Colony, Faisalabad", "Address ye hai...")
+    const isAddressText =
+      lower.includes("house") ||
+      lower.includes("street") ||
+      lower.includes("st #") ||
+      lower.includes("gali") ||
+      lower.includes("block") ||
+      lower.includes("sector") ||
+      lower.includes("colony") ||
+      lower.includes("flat") ||
+      lower.includes("floor") ||
+      lower.includes("mohallah") ||
+      lower.includes("chowk") ||
+      lower.includes("road") ||
+      lower.includes("phase") ||
+      lower.includes("faisalabad") ||
+      lower.includes("lahore") ||
+      lower.includes("near ") ||
+      lower.startsWith("address ") ||
+      lower.includes("address ye hai") ||
+      lower.includes("address note kar");
+
+    if (isAddressText && cleanText.length >= 10) {
+      const cleanAddress = cleanText.replace(/^(address\s*ye\s*hai\s*[:,-]?|address\s*is\s*[:,-]?|address\s*[:,-]?)/i, "").trim();
+      await updateConversationState(conversationId, { deliveryAddress: cleanAddress }, customerId);
+      
+      // Update customer address in db
+      await prisma.customer.update({
+        where: { id: customerId },
+        data: { address: cleanAddress },
+      }).catch(() => {});
+
+      if (state.cart.length > 0) {
+        const calc = await calculate_cart_total(state.cart);
+        const formatted = formatCartText(calc, lang);
+        return {
+          text:
+            `📍 *Delivery Address:* *${cleanAddress}* note ho gaya hai!\n\n` +
+            `📋 *ORDER SUMMARY*\n\n` +
+            `${formatted}\n` +
+            `*Aap payment kis tareeqay se karna chahenge?*`,
+          buttons: [
+            { id: "act:pay_cod", title: "💵 Cash on Delivery" },
+            { id: "act:pay_online", title: "💳 Online Payment" },
+            { id: "act:view_cart", title: "🛒 View Cart" },
+          ],
+        };
+      } else {
+        return {
+          text:
+            `📍 *Delivery Address:* *${cleanAddress}* note ho gaya hai.\n\n` +
+            `Khana order karne ke liye neeche button par tap karein:`,
+          buttons: [
+            { id: "btn_show_deals", title: "🔥 All Deals (NEW)" },
+            { id: "btn_show_menu", title: "📜 View Menu (NEW)" },
+            { id: "btn_staff_help", title: "👨‍🍳 Staff Support" },
+          ],
+        };
+      }
     }
 
     // =========================================================================

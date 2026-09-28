@@ -141,7 +141,7 @@ export function detectLanguage(text: string): "en" | "ur" | "ur_roman" {
 export function cleanItemName(raw: string): string {
   return raw
     // 1. First strip multi-word conversational phrases & actions
-    .replace(/\b(laga\s*do|lagado|add\s*kar\s*do|add\s*karo|add\s*kardo|add|daal\s*do|daaldo|hata\s*do|hatado|remove|nikaal\s*do|chahiye|bhejo|bhej\s*do|mangwao|kitne\s*ka\s*hai|kitne\s*ki\s*hai|available\s*hai|dastyab\s*hai|hai|hain)\b/gi, "")
+    .replace(/\b(i\s*want|i\s*need|want|need|laga\s*do|lagado|add\s*kar\s*do|add\s*karo|add\s*kardo|add|daal\s*do|daaldo|hata\s*do|hatado|remove|nikaal\s*do|chahiye|bhejo|bhej\s*do|mangwao|kitne\s*ka\s*hai|kitne\s*ki\s*hai|available\s*hai|dastyab\s*hai|hai|hain)\b/gi, "")
     // 2. Then strip pronouns, filler words, and quantities/numbers
     .replace(/\b(mujhe|bhai|yaar|dost|please|plz|bhi|aur|sirf|ek|aik|ik|do|teen|char|chaar|paanch|panch|che|saat|aath|nau|das|dus|sau|\d+)\b/gi, "")
     // 3. Normalize non-alphanumeric except hyphen and space
@@ -296,7 +296,12 @@ export function parseNlu(text: string, pendingContext?: {
     lower === "total?" ||
     lower.includes("total kitna") ||
     lower.includes("total kitna bana") ||
-    lower.includes("kitne paise bane")
+    lower.includes("kitne paise bane") ||
+    lower.includes("mera bill") ||
+    lower.includes("bill batao") ||
+    lower.includes("bill kitna") ||
+    lower.includes("bill kya hai") ||
+    lower.includes("mera total")
   ) {
     return { intent: "GET_TOTAL", confidence: 0.95, rawText: clean, language: lang };
   }
@@ -403,7 +408,7 @@ export function parseNlu(text: string, pendingContext?: {
     }
   }
 
-  // 10. Add to Cart (e.g. "2 burger laga do", "ek coke bhi add kar do", "bhai 5 samosay daal do")
+  // 10. Add to Cart (e.g. "2 burger laga do", "ek coke bhi add kar do", "I want 4 pizzas", "need 2 burgers")
   const isAddKeyword =
     lower.includes("laga do") ||
     lower.includes("lagado") ||
@@ -411,7 +416,12 @@ export function parseNlu(text: string, pendingContext?: {
     lower.includes("daal do") ||
     lower.includes("chahiye") ||
     lower.includes("bhejo") ||
-    lower.includes("de do");
+    lower.includes("de do") ||
+    lower.includes("want") ||
+    lower.includes("need") ||
+    lower.includes("order") ||
+    lower.includes("کر دیں") ||
+    lower.includes("چاہیے");
 
   const parsedQty = parseQuantity(clean);
   if (isAddKeyword && parsedQty) {
@@ -434,7 +444,8 @@ export function parseNlu(text: string, pendingContext?: {
     lower.includes("kitne ki") ||
     lower.includes("price") ||
     lower.includes("rate") ||
-    lower.includes("qeemat")
+    lower.includes("qeemat") ||
+    lower.includes("قیمت")
   ) {
     const itemQuery = cleanItemName(clean);
     return {
@@ -448,7 +459,7 @@ export function parseNlu(text: string, pendingContext?: {
 
   // 12. Check Availability (e.g. "bhai samosa hai?", "coke available hai?")
   if (
-    (lower.includes("hai?") || lower.includes("available") || lower.includes("dastyab") || lower.includes("mil jaye")) &&
+    (lower.includes("hai?") || lower.includes("available") || lower.includes("dastyab") || lower.includes("mil jaye") || lower.includes("دستیاب")) &&
     !isAddKeyword
   ) {
     const itemQuery = cleanItemName(clean);
@@ -467,6 +478,8 @@ export function parseNlu(text: string, pendingContext?: {
   if (
     lower === "menu" ||
     lower === "m" ||
+    lower.includes("menu") ||
+    lower.includes("مینو") ||
     lower.includes("menu dikhao") ||
     lower.includes("kya kya hai") ||
     lower.includes("kya dishes hain") ||

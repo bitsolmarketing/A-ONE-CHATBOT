@@ -82,8 +82,8 @@ export async function PATCH(req: NextRequest) {
             conv.customer.phone,
             resumeText,
             [
+              { id: "btn_show_deals", title: "🔥 All Deals" },
               { id: "btn_show_menu", title: "📜 View Menu" },
-              { id: "btn_show_deals", title: "🔥 Special Deals" },
               { id: "btn_staff_help", title: "👨‍🍳 Staff Support" },
             ]
           );

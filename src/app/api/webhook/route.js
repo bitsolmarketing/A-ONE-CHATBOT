@@ -14,55 +14,63 @@ export const DEALS_HUB = {
   deals_cat_summer: {
     title: { ROMAN_URDU: "☀️ Summer Deals (1-10)", URDU: "☀️ سمر ڈیلز", ENGLISH: "☀️ Summer Deals" },
     rows: [
-      { id: "sum_1", title: "Summer Deal 1", price: 1100, desc: "Rs. 1100 | 2 Small Pastas, Brownie, Drink" },
-      { id: "sum_2", title: "Summer Deal 2", price: 1900, desc: "Rs. 1900 | 4 Zinger Burgers, 2 Brownies, 1.5L" },
+      { id: "sum_1", title: "Summer Deal 1", price: 1100, desc: "Rs. 1100 | 2 Small Pastas, Brownie, 500ml Drink" },
+      { id: "sum_2", title: "Summer Deal 2", price: 1900, desc: "Rs. 1900 | 4 Zinger Burgers, 2 Brownies, 1.5L Drink" },
       { id: "sum_3", title: "Summer Deal 3", price: 770, desc: "Rs. 770 | 1 Small Pasta, Fries, 500ml Drink" },
-      { id: "sum_4", title: "Summer Deal 4", price: 690, desc: "Rs. 690 | 2 Chicken Burgers, Fries, 350ml" },
-      { id: "sum_5", title: "Summer Deal 5", price: 1200, desc: "Rs. 1200 | 1 Large Pasta, Custard, 500ml" },
-      { id: "sum_6", title: "Summer Deal 6", price: 1450, desc: "Rs. 1450 | 2 Zingers, Large Pasta, 1.5L" },
-      { id: "sum_7", title: "Summer Deal 7", price: 3050, desc: "Rs. 3050 | 2 Large Pizzas, Large Pasta, 1.5L" },
+      { id: "sum_4", title: "Summer Deal 4", price: 690, desc: "Rs. 690 | 2 Chicken Burgers, Fries, 350ml Drink" },
+      { id: "sum_5", title: "Summer Deal 5", price: 1200, desc: "Rs. 1200 | 1 Large Pasta, Custard, 500ml Drink" },
+      { id: "sum_6", title: "Summer Deal 6", price: 1450, desc: "Rs. 1450 | 2 Zingers, Large Pasta, 1.5L Drink" },
+      { id: "sum_7", title: "Summer Deal 7", price: 3050, desc: "Rs. 3050 | 2 Large Pizzas, Large Pasta, 1.5L Drink" },
       { id: "sum_8", title: "Summer Deal 8", price: 1070, desc: "Rs. 1070 | 2 Small Pastas, 500ml Drink" },
-      { id: "sum_9", title: "Summer Deal 9", price: 1950, desc: "Rs. 1950 | 1 Large Pizza, 4 Spin Roll, 1L" },
-      { id: "sum_10", title: "Summer Deal 10", price: 890, desc: "Rs. 890 | 2 Zinger Parathas, Fries, 500ml" },
+      { id: "sum_9", title: "Summer Deal 9", price: 1950, desc: "Rs. 1950 | 1 Large Pizza, 4 Spin Roll, 1L Drink" },
+      { id: "sum_10", title: "Summer Deal 10", price: 890, desc: "Rs. 890 | 2 Zinger Parathas, Fries, 500ml Drink" },
     ],
   },
   deals_cat_special_1: {
     title: { ROMAN_URDU: "🔥 Special Deals (1-9)", URDU: "🔥 سپیشل ڈیلز (1 تا 9)", ENGLISH: "🔥 Special Deals (1-9)" },
     rows: [
       { id: "deal_1", title: "Deal 1", price: 580, desc: "Rs. 580 | 1 Small Pizza + 350ml Drink" },
-      { id: "deal_2", title: "Deal 2", price: 500, desc: "Rs. 500 | 1 Patty Burger + Fries + Drink" },
-      { id: "deal_3", title: "Deal 3", price: 810, desc: "Rs. 810 | 2 Zinger Burgers + 2 Drinks" },
-      { id: "deal_4", title: "Deal 4", price: 1150, desc: "Rs. 1150 | 2 Zingers + 2 Fries + 2 Drinks" },
-      { id: "deal_5", title: "Deal 5", price: 750, desc: "Rs. 750 | 1 Zinger + 1 Patty + Fries + 2 Drinks" },
+      { id: "deal_2", title: "Deal 2", price: 500, desc: "Rs. 500 | 1 Patty Burger + Fries + 350ml Drink" },
+      { id: "deal_3", title: "Deal 3", price: 810, desc: "Rs. 810 | 2 Zinger Burgers + 2 Drinks 350ml" },
+      { id: "deal_4", title: "Deal 4", price: 1150, desc: "Rs. 1150 | 2 Zingers + 2 Fries + 2 Drinks 350ml" },
+      { id: "deal_5", title: "Deal 5", price: 750, desc: "Rs. 750 | 1 Zinger + 1 Patty + Fries + 2 Drinks 350ml" },
       { id: "deal_6", title: "Deal 6", price: 1700, desc: "Rs. 1700 | 1 Large + 1 Medium + 1.5L Drink" },
       { id: "deal_7", title: "Deal 7", price: 2650, desc: "Rs. 2650 | 2 Large Pizzas + 1.5L Drink" },
-      { id: "deal_8", title: "Deal 8", price: 480, desc: "Rs. 480 | 1 Small Pizza + 1 Zinger + Drink" },
-      { id: "deal_9", title: "Deal 9", price: 1300, desc: "Rs. 1300 | 1 Med Pizza + 5 Wings + Drink" },
+      { id: "deal_8", title: "Deal 8", price: 480, desc: "Rs. 480 | 1 Small Pizza + 1 Zinger + 350ml Drink" },
+      { id: "deal_9", title: "Deal 9", price: 1300, desc: "Rs. 1300 | 1 Med Pizza + 5 Wings + 500ml Drink" },
     ],
   },
   deals_cat_special_2: {
     title: { ROMAN_URDU: "🔥 Special Deals (10-17)", URDU: "🔥 سپیشل ڈیلز (10 تا 17)", ENGLISH: "🔥 Special Deals (10-17)" },
     rows: [
-      { id: "deal_10", title: "Deal 10", price: 1700, desc: "Rs. 1700 | 1 Large Pizza + Large Fries + 1.5L" },
-      { id: "deal_11", title: "Deal 11", price: 1250, desc: "Rs. 1250 | 1 Med Pizza + 5 Wings + 500ml" },
-      { id: "deal_12", title: "Deal 12", price: 1800, desc: "Rs. 1800 | 1 Zinger + Large Fries + 350ml" },
-      { id: "deal_13", title: "Deal 13", price: 1950, desc: "Rs. 1950 | 1 Large Pizza + 4 Spin Roll + 1.5L" },
-      { id: "deal_14", title: "Deal 14", price: 1150, desc: "Rs. 1150 | 2 Grill Burgers + Fries + 2 Drinks" },
-      { id: "deal_15", title: "Deal 15", price: 1700, desc: "Rs. 1700 | 1 Large Pizza + Large Fries + 1.5L" },
-      { id: "deal_16", title: "Deal 16", price: 860, desc: "Rs. 860 | 1 Small Pizza + 1 Zinger + 350ml" },
-      { id: "deal_17", title: "Deal 17", price: 1650, desc: "Rs. 1650 | 2 Small Pizzas + 1 Wrap + 350ml" },
+      { id: "deal_10", title: "Deal 10", price: 1700, desc: "Rs. 1700 | 1 Large Pizza + Large Fries + 1.5L Drink" },
+      { id: "deal_11", title: "Deal 11", price: 1250, desc: "Rs. 1250 | 1 Med Pizza + 5 Wings + 500ml Drink" },
+      { id: "deal_12", title: "Deal 12", price: 1800, desc: "Rs. 1800 | 1 Zinger + Large Fries + 350ml Drink" },
+      { id: "deal_13", title: "Deal 13", price: 1950, desc: "Rs. 1950 | 1 Large Pizza + 4 Spin Roll + 1.5L Drink" },
+      { id: "deal_14", title: "Deal 14", price: 1150, desc: "Rs. 1150 | 2 Grill Burgers + Fries + 2 Drinks 350ml" },
+      { id: "deal_15", title: "Deal 15", price: 1700, desc: "Rs. 1700 | 1 Large Pizza + Large Fries + 1.5L Drink" },
+      { id: "deal_16", title: "Deal 16", price: 860, desc: "Rs. 860 | 1 Small Pizza + 1 Zinger + 350ml Drink" },
+      { id: "deal_17", title: "Deal 17", price: 1650, desc: "Rs. 1650 | 2 Small Pizzas + 1 Wrap + 350ml Drink" },
     ],
   },
-  deals_cat_family_rice: {
-    title: { ROMAN_URDU: "👨‍👩‍👧‍👦 Family & Rice Deals", URDU: "👨‍👩‍👧‍👦 فیملی اور رائس ڈیلز", ENGLISH: "👨‍👩‍👧‍👦 Family & Rice Deals" },
+  deals_cat_family: {
+    title: { ROMAN_URDU: "👨‍👩‍👧‍👦 Family Deals", URDU: "👨‍👩‍👧‍👦 فیملی ڈیلز", ENGLISH: "👨‍👩‍👧‍👦 Family Deals" },
     rows: [
-      { id: "fam_1", title: "Family Deal 1", price: 3180, desc: "Rs. 3180 | 2 Large Pizzas, Fries, Broast, 1.5L" },
+      { id: "fam_1", title: "Family Deal 1", price: 3180, desc: "Rs. 3180 | 2 Large Pizzas, Fries, Broast, 1.5L Drink" },
       { id: "fam_2", title: "Family Deal 2", price: 3000, desc: "Rs. 3000 | 2 Large Pizzas + 1.5L Drink" },
       { id: "fam_3", title: "Family Deal 3", price: 2100, desc: "Rs. 2100 | 2 Broast, 1 Fries, 1.5L Drink" },
-      { id: "fam_4", title: "Family Deal 4", price: 3350, desc: "Rs. 3350 | 2 Large Pizzas, Large Fries, 1.5L" },
-      { id: "rd_1", title: "Rice Deal 1", price: 1050, desc: "Rs. 1050 | 2 Biryani/Pulao, Kheer, 500ml" },
-      { id: "rd_2", title: "Rice Deal 2", price: 990, desc: "Rs. 990 | 2 Biryani/Pulao, Half Zarda, 500ml" },
-      { id: "rd_3", title: "Rice Deal 3", price: 630, desc: "Rs. 630 | 1 Biryani/Pulao, Brownie, 350ml" },
+      { id: "fam_4", title: "Family Deal 4", price: 3350, desc: "Rs. 3350 | 2 Large Pizzas, Large Fries, 1.5L Drink" },
+    ],
+  },
+  deals_cat_rice: {
+    title: { ROMAN_URDU: "🍚 Rice Deals & Items", URDU: "🍚 بریانی اور رائس ڈیلز", ENGLISH: "🍚 Rice Deals & Items" },
+    rows: [
+      { id: "rd_1", title: "Rice Deal 1", price: 1050, desc: "Rs. 1050 | 2 Biryani/Pulao, Kheer, 500ml Drink" },
+      { id: "rd_2", title: "Rice Deal 2", price: 990, desc: "Rs. 990 | 2 Biryani/Pulao, Half Zarda, 500ml Drink" },
+      { id: "rd_3", title: "Rice Deal 3", price: 630, desc: "Rs. 630 | 1 Biryani/Pulao, Brownie, 350ml Drink" },
+      { id: "rd_4", title: "Rice Deal 4", price: 1070, desc: "Rs. 1070 | 1 Biryani/Pulao, Sm Russian Salad, 350ml Drink" },
+      { id: "rd_5", title: "Rice Deal 5", price: 580, desc: "Rs. 580 | 1 Biryani/Pulao, Half Zarda, 350ml Drink" },
+      { id: "rd_6", title: "Rice Deal 6", price: 500, desc: "Rs. 500 | 1 Biryani/Pulao, Pastry, 350ml Drink" },
     ],
   },
 };
@@ -332,8 +340,8 @@ async function createDatabaseOrder({
 
     const notifMessage =
       paymentStatus === "PENDING_VERIFICATION"
-        ? `Customer ${formattedPhone} uploaded slip for Rs. ${total.toLocaleString()}. Ref: ${paymentReference || "N/A"}`
-        : `Customer ${formattedPhone} ordered ${session.selectedItem} (x${session.quantity}) for Rs. ${total.toLocaleString()} (COD)`;
+        ? `Customer ${formattedPhone} uploaded slip for Rs. ${finalTotal.toLocaleString()}. Ref: ${paymentReference || "N/A"}`
+        : `Customer ${formattedPhone} ordered ${session.selectedItem} (x${session.quantity}) for Rs. ${finalTotal.toLocaleString()} (COD)`;
 
     await prisma.notification.create({
       data: {
@@ -433,9 +441,14 @@ async function sendDealsHubList(to, language = "ROMAN_URDU") {
       description: "Rs. 860 se Rs. 1950 tak",
     },
     {
-      id: "deals_cat_family_rice",
-      title: "👨‍👩‍👧‍👦 Family & Rice Deals",
-      description: "Family combos & Rice deals",
+      id: "deals_cat_family",
+      title: "👨‍👩‍👧‍👦 Family Deals",
+      description: "Rs. 2100 se Rs. 3350 tak",
+    },
+    {
+      id: "deals_cat_rice",
+      title: "🍚 Rice Deals & Items",
+      description: "Rs. 500 se Rs. 1070 tak",
     },
   ];
 
