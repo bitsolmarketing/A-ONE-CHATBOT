@@ -217,14 +217,14 @@ async function sendWhatsApp(to, data) {
 
 // Helper: Parse or fallback item price
 function getItemPrice(item, details) {
-  if (details && typeof details.price === "number") return details.price;
+  if (details && typeof details.price === "number" && !isNaN(details.price) && details.price > 0) return details.price;
   if (details && typeof details.desc === "string") {
     const m = details.desc.match(/Rs\.?\s*(\d+)/i);
-    if (m) return parseInt(m[1], 10);
+    if (m && !isNaN(parseInt(m[1], 10)) && parseInt(m[1], 10) > 0) return parseInt(m[1], 10);
   }
   if (typeof item === "string") {
     const m = item.match(/Rs\.?\s*(\d+)/i);
-    if (m) return parseInt(m[1], 10);
+    if (m && !isNaN(parseInt(m[1], 10)) && parseInt(m[1], 10) > 0) return parseInt(m[1], 10);
   }
   return 550;
 }
@@ -566,9 +566,14 @@ async function sendCategoryDropdownItems(to, categoryKey, language = "ROMAN_URDU
 //  FLOW 6: HYBRID QUANTITY SELECTION ([1], [2], [✍️ Custom Type])
 // =============================================================================
 async function sendHybridQuantitySelection(to, item, session, language = "ROMAN_URDU") {
+  const price = Number(item.price) > 0 ? Number(item.price) : getItemPrice(item.title, item);
   session.selectedItem = item.title;
   session.selectedItemDetails = item;
-  session.unitPrice = item.price || getItemPrice(item.title, item);
+  session.unitPrice = price;
+  session.quantity = 1;
+  session.subtotal = price * 1;
+  session.deliveryFee = 150;
+  session.grandTotal = session.subtotal + session.deliveryFee;
   session.step = "AWAITING_QUANTITY";
 
   const bodyText =
@@ -810,8 +815,9 @@ export async function POST(request) {
 
       // Step: Awaiting Quantity via User Typing
       if (session.step === "AWAITING_QUANTITY") {
-        const parsedQty = parseInt(text.replace(/\D/g, ""), 10) || 1;
-        const unitPrice = Number(session.unitPrice) || 0;
+        const parsedDigits = parseInt(text.replace(/\D/g, ""), 10);
+        const parsedQty = !isNaN(parsedDigits) && parsedDigits > 0 ? parsedDigits : 1;
+        const unitPrice = Number(session.unitPrice) > 0 ? Number(session.unitPrice) : (Number(session.selectedItemDetails?.price) || 500);
         const qty = parsedQty;
         const subtotal = unitPrice * qty;
         const deliveryCharges = 150;
@@ -836,8 +842,8 @@ export async function POST(request) {
       // Step: Awaiting Address -> Go to Payment Selection
       if (session.step === "AWAITING_ADDRESS") {
         session.address = text;
-        const unitPrice = Number(session.unitPrice) || 0;
-        const qty = Number(session.quantity) || 1;
+        const unitPrice = Number(session.unitPrice) > 0 ? Number(session.unitPrice) : (Number(session.selectedItemDetails?.price) || 500);
+        const qty = Number(session.quantity) > 0 ? Number(session.quantity) : 1;
         const subtotal = unitPrice * qty;
         const deliveryCharges = 150;
         const finalTotal = subtotal + deliveryCharges;
@@ -1053,7 +1059,7 @@ export async function POST(request) {
 
       // 3g. Quantity Buttons Tapped ([1], [2], [Custom Type])
       if (actionId === "qty_1") {
-        const unitPrice = Number(session.unitPrice) || 0;
+        const unitPrice = Number(session.unitPrice) > 0 ? Number(session.unitPrice) : (Number(session.selectedItemDetails?.price) || 500);
         const qty = 1;
         const subtotal = unitPrice * qty;
         const deliveryCharges = 150;
@@ -1076,7 +1082,7 @@ export async function POST(request) {
       }
 
       if (actionId === "qty_2") {
-        const unitPrice = Number(session.unitPrice) || 0;
+        const unitPrice = Number(session.unitPrice) > 0 ? Number(session.unitPrice) : (Number(session.selectedItemDetails?.price) || 500);
         const qty = 2;
         const subtotal = unitPrice * qty;
         const deliveryCharges = 150;

@@ -47,22 +47,44 @@ async function callGemini(
   systemInstruction: string,
   userMessage: string,
   apiKey: string,
-  model = "gemini-1.5-pro"
+  model = "gemini-2.5-flash"
 ): Promise<string> {
   const ai = new GoogleGenAI({ apiKey });
-  const response = await ai.models.generateContent({
-    model: model.includes("gemini") ? model : "gemini-1.5-pro",
-    contents: userMessage,
-    config: {
-      systemInstruction,
-      temperature: 0.2,
-      maxOutputTokens: 500,
-    },
-  });
+  const modelToUse = model.includes("gemini") ? model : "gemini-2.5-flash";
+  try {
+    const response = await ai.models.generateContent({
+      model: modelToUse,
+      contents: userMessage,
+      config: {
+        systemInstruction,
+        temperature: 0.3,
+        maxOutputTokens: 500,
+      },
+    });
 
-  const text = response.text?.trim();
-  if (!text) throw new Error("Empty response from Gemini.");
-  return text;
+    const text = response.text?.trim();
+    if (text) return text;
+  } catch (err: any) {
+    console.warn(`[Gemini API] Error with ${modelToUse}:`, err.message);
+    const fallbackModel = modelToUse === "gemini-1.5-pro" ? "gemini-2.5-flash" : "gemini-1.5-pro";
+    try {
+      const response = await ai.models.generateContent({
+        model: fallbackModel,
+        contents: userMessage,
+        config: {
+          systemInstruction,
+          temperature: 0.3,
+          maxOutputTokens: 500,
+        },
+      });
+      const text = response.text?.trim();
+      if (text) return text;
+    } catch (fallbackErr: any) {
+      console.warn(`[Gemini API] Fallback error with ${fallbackModel}:`, fallbackErr.message);
+    }
+    throw err;
+  }
+  throw new Error("Empty response from Gemini.");
 }
 
 /**
@@ -143,7 +165,7 @@ export async function generateMultiProviderReply(
 
   const aiSettings = (settings?.aiSettings as Record<string, any>) || {};
   const preferredProvider = (aiSettings.provider || config.ai.provider || "gemini").toLowerCase();
-  const preferredModel = aiSettings.model || config.ai.model || "gemini-1.5-pro";
+  const preferredModel = aiSettings.model || config.ai.model || "gemini-2.5-flash";
   const strictMode = aiSettings.strictGuardrails !== false;
 
   const geminiKey = aiSettings.geminiApiKey || config.ai.geminiKey || process.env.GEMINI_API_KEY;
@@ -179,8 +201,8 @@ export async function generateMultiProviderReply(
   // 2. Fallbacks across available keys
   if (geminiKey) {
     try {
-      const text = await callGemini(systemPrompt, userMessage, geminiKey, "gemini-1.5-pro");
-      return { text, providerUsed: "gemini", modelUsed: "gemini-1.5-pro" };
+      const text = await callGemini(systemPrompt, userMessage, geminiKey, "gemini-2.5-flash");
+      return { text, providerUsed: "gemini", modelUsed: "gemini-2.5-flash" };
     } catch {}
   }
 

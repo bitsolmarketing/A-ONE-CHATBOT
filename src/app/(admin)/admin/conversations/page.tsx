@@ -139,14 +139,13 @@ export default function ConversationsInboxPage() {
   const prevPendingCountRef = useRef(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
-  const prevMessagesLength = useRef(0);
+  const prevCount = useRef(0);
 
-  // Track scroll position: user is near bottom if within 80px
+  // Track scroll position: user is near bottom if within 100px
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-    const atBottom = scrollHeight - scrollTop - clientHeight < 80;
-    setIsAtBottom(atBottom);
+    setIsAtBottom(scrollHeight - scrollTop - clientHeight < 100);
   };
 
   const selectedConv = conversations.find((c) => c.id === selectedConvId);
@@ -258,7 +257,7 @@ export default function ConversationsInboxPage() {
 
   // Reset scroll state on switching conversations
   useEffect(() => {
-    prevMessagesLength.current = 0;
+    prevCount.current = 0;
     setIsAtBottom(true);
   }, [selectedConvId]);
 
@@ -266,22 +265,13 @@ export default function ConversationsInboxPage() {
   useEffect(() => {
     if (!scrollContainerRef.current) return;
 
-    const hasNewMessage = messages.length > prevMessagesLength.current;
-    const isInitialLoad = prevMessagesLength.current === 0 && messages.length > 0;
-    prevMessagesLength.current = messages.length;
+    const isNewMessage = messages.length > prevCount.current;
+    const isInitialLoad = prevCount.current === 0 && messages.length > 0;
+    prevCount.current = messages.length;
 
-    // Initial load: jump directly to bottom
-    if (isInitialLoad) {
+    // Only auto-scroll to bottom if user is already near bottom or on initial load
+    if (isInitialLoad || (isNewMessage && isAtBottom)) {
       scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-      return;
-    }
-
-    // New incoming message: only auto-scroll if user was already at the bottom
-    if (hasNewMessage && isAtBottom) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
-        behavior: "smooth",
-      });
     }
   }, [messages, isAtBottom]);
 
