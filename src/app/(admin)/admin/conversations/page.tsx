@@ -39,6 +39,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PaymentVerificationCard } from "@/components/admin/PaymentVerificationCard";
 
 interface RecentOrder {
   id: string;
@@ -871,6 +872,33 @@ export default function ConversationsInboxPage() {
                 </div>
 
               </div>
+
+              {/* Pending Payment Verification Banner & Action Card */}
+              {(() => {
+                const pendingOrder = selectedConv.recentOrders?.find(
+                  (o) => o.paymentStatus === "PENDING_VERIFICATION"
+                );
+                if (!pendingOrder) return null;
+                return (
+                  <div className="p-3 bg-amber-500/5 border-b border-amber-500/30 shrink-0">
+                    <PaymentVerificationCard
+                      order={{
+                        ...pendingOrder,
+                        customerName: selectedConv.customerName || selectedConv.customerPhone,
+                        customerPhone: selectedConv.customerPhone,
+                      }}
+                      onApproveSuccess={() => {
+                        loadConversations();
+                        if (selectedConvId) loadMessages(selectedConvId);
+                      }}
+                      onRejectSuccess={() => {
+                        loadConversations();
+                        if (selectedConvId) loadMessages(selectedConvId);
+                      }}
+                    />
+                  </div>
+                );
+              })()}
 
               {/* Message Thread History Container (Expanded, Full Height Scroll) */}
               <div

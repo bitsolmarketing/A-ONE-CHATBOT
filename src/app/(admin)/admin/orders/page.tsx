@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   ShoppingBag,
   Clock,
@@ -27,10 +27,37 @@ import {
   AlertTriangle,
   UserX,
   ShieldCheck,
+  Volume2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PaymentVerificationCard } from "@/components/admin/PaymentVerificationCard";
+
+// Web Audio alert chime
+function playPaymentAlertChime() {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+    osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.15); // G5
+    osc.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.3); // C6
+
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.45);
+  } catch (e) {}
+}
 
 const ORDER_STATUSES = [
   { key: "ALL", label: "All Orders" },
@@ -86,6 +113,8 @@ export default function OrdersPage() {
     { itemName: "A-ONE Special Beef Smash Burger", unitPrice: 850, quantity: 1 },
   ]);
 
+  const prevPendingRef = useRef<number>(0);
+
   async function fetchOrders() {
     setLoading(true);
     setError(null);
@@ -97,7 +126,18 @@ export default function OrdersPage() {
       const res = await fetch(url);
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || "Failed to load orders");
-      setOrders(json.orders || []);
+      const loadedOrders = json.orders || [];
+      setOrders(loadedOrders);
+
+      // Check if new pending verification orders arrived and play alert chime
+      const pendingCount = loadedOrders.filter(
+        (o: any) => o.paymentStatus === "PENDING_VERIFICATION"
+      ).length;
+
+      if (pendingCount > prevPendingRef.current && prevPendingRef.current !== 0) {
+        playPaymentAlertChime();
+      }
+      prevPendingRef.current = pendingCount;
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -387,13 +427,41 @@ export default function OrdersPage() {
         </form>
       </div>
 
-      {error && (
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="size-4 shrink-0" />
-            <span>{error}</span>
+      {/* Prominent Payment Verification Approval Cards List */}
+      {(statusFilter === "PENDING_VERIFICATION" || pendingVerificationCount > 0) && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <CreditCard className="size-4 text-amber-500" />
+              <span>Pending Owner Payment Approvals</span>
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-mono font-bold">
+                {orders.filter((o) => o.paymentStatus === "PENDING_VERIFICATION").length} Active
+              </span>
+            </h2>
+            {statusFilter !== "PENDING_VERIFICATION" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStatusFilter("PENDING_VERIFICATION")}
+                className="text-[11px] text-amber-400 hover:text-amber-300 h-7"
+              >
+                View Only Pending Approvals
+              </Button>
+            )}
           </div>
-          <Button size="sm" variant="ghost" onClick={fetchOrders}>Retry</Button>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {orders
+              .filter((o) => o.paymentStatus === "PENDING_VERIFICATION")
+              .map((pendingOrder) => (
+                <PaymentVerificationCard
+                  key={pendingOrder.id}
+                  order={pendingOrder}
+                  onApproveSuccess={() => fetchOrders()}
+                  onRejectSuccess={() => fetchOrders()}
+                />
+              ))}
+          </div>
         </div>
       )}
 

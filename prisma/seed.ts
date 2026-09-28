@@ -297,7 +297,7 @@ async function main() {
 
   // 2. Ensure Owner Account
   const ownerEmail = process.env.OWNER_EMAIL || "owner@aonefoods.com";
-  const defaultPasswordHash = await bcrypt.hash("admin", 10);
+  const defaultPasswordHash = await bcrypt.hash("admin@2232", 10);
 
   const owner = await prisma.user.upsert({
     where: { email: ownerEmail },
